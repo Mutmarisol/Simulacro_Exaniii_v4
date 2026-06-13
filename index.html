@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Evaluación Técnica | Ágora Centro Educativo</title>
+    <style>
+        :root {
+            --primary: #593276;    /* Morado Ágora */
+            --secondary: #1b9396;  /* Turquesa Ágora */
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgb(89 50 118 / 0.08);
+            border-top: 6px solid var(--primary);
+        }
+        .header {
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo-institucional {
+            height: 65px;
+            width: auto;
+            object-fit: contain;
+        }
+        .timer {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #dc2626;
+            background: #fee2e2;
+            padding: 8px 18px;
+            border-radius: 20px;
+        }
+        .progress {
+            font-size: 0.95rem;
+            color: #64748b;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            color: #0f172a;
+        }
+        .reading-passage {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--secondary);
+            font-style: italic;
+            line-height: 1.6;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-btn {
+            padding: 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: white;
+            text-align: left;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover {
+            background: #f8fafc;
+            border-color: var(--secondary);
+        }
+        .option-btn.selected {
+            background: #f0fdfa;
+            border-color: var(--secondary);
+            color: var(--secondary);
+            font-weight: 600;
+            box-shadow: 0 0 0 1px var(--secondary);
+        }
+        .nav-btns {
+            margin-top: 35px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        
+        /* Estilos de Retroalimentación Final */
+        #results { display: none; }
+        .feedback-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .feedback-card.correct { border-left: 5px solid var(--success); background: #f0fdf4; }
+        .feedback-card.incorrect { border-left: 5px solid var(--danger); background: #fdf2f2; }
+        .feedback-status { font-weight: bold; margin-bottom: 10px; }
+        .feedback-status.correct { color: var(--success); }
+        .feedback-status.incorrect { color: var(--danger); }
+        .explanation-box {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #cbd5e1;
+            font-size: 0.95rem;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="brand-section">
+            <img src="logo-agora.png" alt="Ágora Centro Educativo" class="logo-institucional">
+            <div>
+                <h3 style="margin:0; color: var(--primary); font-size: 1.3rem;">Evaluación de Simulación Avanzada</h3>
+                <small style="color: var(--secondary); font-weight: 600; letter-spacing: 0.5px;">EXANI-II | PERFIL: PREMEDICINA</small>
+            </div>
+        </div>
+        <div id="timer" class="timer">120:00</div>
+    </div>
+
+    <div id="quiz-wrapper">
+        <div class="progress">Reactivo <span id="current-index">1</span> de <span id="total-questions">60</span></div>
+        <div id="question-container"></div>
+        
+        <div class="nav-btns">
+            <button id="prev-btn" class="btn btn-secondary" onclick="changeQuestion(-1)" disabled>Anterior</button>
+            <button id="next-btn" class="btn btn-primary" onclick="changeQuestion(1)">Siguiente Reactivo</button>
+        </div>
+    </div>
+
+    <div id="results">
+        <h2 style="color: var(--primary); text-align: center;">Resultados Consolidados</h2>
+        <p style="text-align: center;">El folio ha sido procesado por la dirección académica de Ágora Centro Educativo Integral.</p>
+        
+        <div style="margin: 25px 0; padding: 20px; background: #f8fafc; border-radius: 8px; text-align: center;">
+            <p style="font-size: 1.8rem; font-weight: bold; color: var(--primary); margin: 0;" id="score-text"></p>
+        </div>
+
+        <h3 style="color: var(--text); border-bottom: 2px solid var(--primary); padding-bottom: 8px; margin-top: 40px;">Reporte Técnico y Retroalimentación</h3>
+        <div id="feedback-list"></div>
+    </div>
+</div>
+
+<script>
+const reactivos = [
+    // =========================================================================
+    // MÓDULO: PREMEDICINA (ANATOMÍA, FISIOLOGÍA, BIOLOGÍA Y SALUD PÚBLICA)
+    // =========================================================================
+    {
+        q: "¿Cuál de las siguientes estructuras del sistema de conducción cardíaco actúa como el marcapasos natural del corazón, originando el impulso eléctrico en condiciones normales?",
+        options: ["A) Nodo sinoauricular (SA)", "B) Nodo auriculoventricular (AV)", "C) Haz de His"],
+        correct: 0,
+        explanation: "Retroalimentación: El nodo sinoauricular (situado en la aurícula derecha) autogenera impulsos rítmicos a una frecuencia de 60-100 veces por minuto, funcionando como el marcapasos fisiológico primario."
+    },
+    {
+        q: "Un paciente presenta una lesión en el lóbulo occipital del cerebro debido a un traumatismo. ¿Qué función sensorial se verá afectada principalmente?",
+        options: ["A) La audición y el equilibrio", "B) La percepción visual", "C) La corteza somatosensorial táctil"],
+        correct: 1,
+        explanation: "Retroalimentación: El lóbulo occipital alberga la corteza visual primaria y de asociación; por ende, cualquier lesión en esta región compromete directamente la visión."
+    },
+    {
+        q: "¿En qué fase de la mitosis celular los cromosomas homólogos se alinean de manera exacta en el plano ecuatorial del huso acromático?",
+        options: ["A) Profase", "B) Metafase", "C) Anafase"],
+        correct: 1,
+        explanation: "Retroalimentación: La metafase se caracteriza por la alineación de los cromosomas en la placa ecuatorial o media de la célula antes de dividirse."
+    },
+    {
+        q: "Dentro de la Historia Natural de la Enfermedad, ¿en qué período ocurren los cambios tisulares, bioquímicos y celulares antes de que el paciente manifieste los primeros síntomas clínicos?",
+        options: ["A) Período prepatogénico", "B) Período subclínico (dentro del patogénico)", "C) Período de resolución"],
+        correct: 1,
+        explanation: "Retroalimentación: El período subclínico o de incubación/latencia forma parte del período patogénico. En él ya hay interacción con el agente y daños celulares, pero por debajo del horizonte clínico."
+    },
+    {
+        q: "¿Qué hormona es secretada por las células beta de los islotes de Langerhans en el páncreas para disminuir los niveles de glucosa en el torrente sanguíneo?",
+        options: ["A) Glucagón", "B) Insulina", "C) Somatostatina"],
+        correct: 1,
+        explanation: "Retroalimentación: La insulina favorece la incorporación de glucosa de la sangre a los tejidos. El glucagón (células alfa) tiene el efecto contrario: es hiperglucemiante."
+    },
+    {
+        q: "¿Cuál es el tipo de tejido epitelial que recubre internamente los vasos sanguíneos (endotelio) y los alvéolos pulmonares, facilitando la difusión pasiva de gases y nutrientes?",
+        options: ["A) Epitelio plano simple", "B) Epitelio cúbico estratificado", "C) Epitelio cilíndrico seudoestratificado"],
+        correct: 0,
+        explanation: "Retroalimentación: El epitelio plano simple está constituido por una sola capa de células delgadas, ideal para zonas que requieren filtración o difusión rápida."
+    },
+    {
+        q: "En la tríada ecológica de la salud pública, ¿cómo se define al elemento animado o inanimado cuya presencia o ausencia constitucional es capaz de desencadenar una enfermedad?",
+        options: ["A) Huésped", "B) Medio ambiente", "C) Agente causal"],
+        correct: 2,
+        explanation: "Retroalimentación: El agente es el microorganismo, sustancia química o factor físico indispensable para el desarrollo de una enfermedad."
+    },
+    {
+        q: "¿Cuál es el mecanismo de transporte de membrana celular que utiliza energía en forma de ATP para movilizar iones en contra de su gradiente de concentración?",
+        options: ["A) Difusión facilitada", "B) Ósmosis", "C) Transporte activo primario"],
+        correct: 2,
+        explanation: "Retroalimentación: El transporte activo requiere energía celular (ATP) debido a que mueve solutos cuesta arriba (en contra de sus gradientes de concentración)."
+    },
+    {
+        q: "¿Qué sección del tubo digestivo humano absorbe la mayor proporción de nutrientes obtenidos durante el proceso de la digestión?",
+        options: ["A) Estómago", "B) Intestino delgado", "C) Intestino grueso"],
+        correct: 1,
+        explanation: "Retroalimentación: Gracias a las microvellosidades, el intestino delgado (duodeno, yeyuno e íleon) es el sitio principal de absorción de nutrientes."
+    },
+    {
+        q: "Tipo de inmunidad que adquiere un recién nacido al recibir anticuerpos IgG preformados de la madre a través de la placenta.",
+        options: ["A) Inmunidad activa artificial", "B) Inmunidad pasiva natural", "C) Inmunidad activa natural"],
+        correct: 1,
+        explanation: "Retroalimentación: Es pasiva porque el organismo no fabrica los anticuerpos (los recibe hechos) y es natural porque ocurre por un proceso biológico natural (placenta/lactancia)."
+    },
+
+    // =========================================================================
+    // MÓDULO: PENSAMIENTO MATEMÁTICO
+    // =========================================================================
+    {
+        q: "Dada la siguiente serie de datos clínicos correspondientes a las frecuencias cardíacas de 5 pacientes: 72, 80, 75, 72, 85. Calcule el valor de la mediana.",
+        options: ["A) 72", "B) 75", "C) 76.8"],
+        correct: 1,
+        explanation: "Retroalimentación: Ordenando los datos de menor a mayor: 72, 72, 75, 80, 85. El valor central (mediana) que divide el conjunto exactamente a la mitad es 75."
+    },
+    {
+        q: "Resuelva el siguiente sistema de ecuaciones lineales para encontrar el valor numérico de 'x':\n2x + 3y = 12\nx - y = 1",
+        options: ["A) x = 3", "B) x = 2", "C) x = 1"],
+        correct: 0,
+        explanation: "Retroalimentación: De la segunda ecuación y = x - 1. Sustituyendo en la primera: 2x + 3(x - 1) = 12 -> 2x + 3x - 3 = 12 -> 5x = 15 -> x = 3."
+    },
+    {
+        q: "Un consultorio reporta que el 60% de sus pacientes totales padecen hipertensión. Si se seleccionan 2 pacientes de forma consecutiva y con reemplazo, ¿cuál es la probabilidad de que AMBOS sean hipertensos?",
+        options: ["A) 0.60", "B) 0.36", "C) 1.20"],
+        correct: 1,
+        explanation: "Retroalimentación: Al ser eventos independientes con reemplazo, se multiplican sus probabilidades individuales: 0.60 * 0.60 = 0.36 (o 36%)."
+    },
+    {
+        q: "¿Cuál es el valor simplificado de la siguiente expresión con exponentes exponenciales? (2³ * 2² ) / 2⁴",
+        options: ["A) 2", "B) 4", "C) 1"],
+        correct: 0,
+        explanation: "Retroalimentación: Leyes de los exponentes: en el numerador se suman (3 + 2 = 5), quedando 2⁵. Al dividir, se restan los exponentes (5 - 4 = 1), lo que da como resultado 2¹ = 2."
+    },
+    {
+        q: "Si un triángulo rectángulo presenta un cateto opuesto de 3 cm y un cateto adyacente de 4 cm con respecto a un ángulo alfa, ¿cuál es el valor de la función trigonométrica Seno de alfa?",
+        options: ["A) 3/4", "B) 4/5", "C) 3/5"],
+        correct: 2,
+        explanation: "Retroalimentación: Por teorema de Pitágoras, la hipotenusa mide √(3² + 4²) = 5 cm. La función Seno se define como Cateto Opuesto / Hipotenusa, dando 3/5."
+    },
+    {
+        q: "Determine la ecuación de la recta que intersecta al eje de las ordenadas (y) en el punto (0, 5) y ostenta una pendiente igual a -2.",
+        options: ["A) y = 5x - 2", "B) y = -2x + 5", "C) y = -2x - 5"],
+        correct: 1,
+        explanation: "Retroalimentación: Aplicando la ecuación de la recta ordinaria (y = mx + b), donde m es la pendiente (-2) y b es la intersección en y (5): y = -2x + 5."
+    },
+    {
+        q: "Un lote epidemiológico de vacunas contiene 150 unidades. Se determina que el 4% sufrieron defectos de refrigeración. ¿Cuántas vacunas utilizables quedan en el lote?",
+        options: ["A) 144", "B) 146", "C) 6"],
+        correct: 0,
+        explanation: "Retroalimentación: El 4% de 150 es (150 * 0.04) = 6 vacunas defectuosas. Restando las dañadas al total: 150 - 6 = 144 vacunas óptimas."
+    },
+
+    // =========================================================================
+    // MÓDULO: COMPRESIÓN LECTORA
+    // =========================================================================
+    {
+        passage: "TEXTO A: El método científico no es una estructura rígida de pasos inalterables, sino un marco conceptual elástico y riguroso. Su objetivo prioritario radica en minimizar la subjetividad del investigador y someter las hipótesis a pruebas empíricas replicables. En las ciencias biológicas y médicas, este rigor es vital, puesto que las conclusiones derivadas impactan de forma directa sobre tratamientos clínicos que comprometen la salud de poblaciones humanas. Omitir el control de variables equivale a invalidar el conocimiento.",
+        q: "A partir del Texto A, identifique cuál es la intención primordial que persigue el autor del fragmento.",
+        options: ["A) Describir detalladamente el orden cronológico de los pasos del método.", "B) Argumentar sobre la importancia del rigor epistemológico en la investigación médica.", "C) Criticar los presupuestos económicos que financian los laboratorios clínicos."],
+        correct: 1,
+        explanation: "Retroalimentación: El autor defiende la rigurosidad y la objetividad del método científico enfocado en el campo de la medicina biológica, rechazando la subjetividad."
+    },
+    {
+        passage: "TEXTO A: El método científico no es una estructura rígida de pasos inalterables, sino un marco conceptual elástico y riguroso. Su objetivo prioritario radica en minimizar la subjetividad del investigador y someter las hipótesis a pruebas empíricas replicables. En las ciencias biológicas y médicas, este rigor es vital, puesto que las conclusiones derivadas impactan de forma directa sobre tratamientos clínicos que comprometen la salud de poblaciones humanas. Omitir el control de variables equivale a invalidar el conocimiento.",
+        q: "¿Qué significado adquiere el vocablo 'replicables' dentro del contexto de la lectura anterior?",
+        options: ["A) Que las pruebas pueden ser criticadas y refutadas teóricamente.", "B) Que los experimentos pueden ser reproducidos de igual forma por otros científicos.", "C) Que los resultados son ambiguos y se prestan a dobles interpretaciones."],
+        correct: 1,
+        explanation: "Retroalimentación: En el ámbito científico, la replicabilidad denota la capacidad de reproducir un estudio de manera idéntica para corroborar sus hallazgos."
+    },
+    {
+        passage: "TEXTO B: Los virus no se consideran seres vivos en sentido estricto, dado que carecen de metabolismo propio e independencia replicativa. Son agregados moleculares complejos formados por ácidos nucleicos encapsulados en proteínas. Para perpetuarse, requieren secuestrar la maquinaria bioquímica de una célula hospedadora viva. Este parasitismo genético absoluto difumina la frontera entre la materia orgánica inanimada y la vida.",
+        q: "Seleccione la conclusión sintética que derive directamente de las premisas expuestas en el Texto B.",
+        options: ["A) Las bacterias y los virus poseen la misma complejidad estructural.", "B) La condición de parásitos obligados de los virus se debe a su falta de metabolismo propio.", "C) Todos los virus mutan con mayor velocidad que las células hospederas."],
+        correct: 1,
+        explanation: "Retroalimentación: El texto afirma que al no tener metabolismo ni independencia, necesitan estrictamente secuestrar otra maquinaria celular para sobrevivir."
+    },
+
+    // =========================================================================
+    // MÓDULO: REDACCIÓN INDIRECTA
+    // =========================================================================
+    {
+        q: "Complete la siguiente oración utilizando los conectores gramaticales de concordancia adecuados:\nEl equipo de investigadores ________ de prisa al laboratorio, ________ el director general aún no autorizaba el protocolo.",
+        options: ["A) entró - sin embargo", "B) entraron - no obstante", "C) ingresó - por lo tanto"],
+        correct: 0,
+        explanation: "Retroalimentación: 'El equipo' requiere verbo singular ('entró'). El conector adverso 'sin embargo' introduce una oposición lógica válida con la segunda premisa."
+    },
+    {
+        q: "Elija la opción gramatical que evidencie un uso IMPECABLE de los signos de puntuación (puntos, comas, punto y coma).",
+        options: ["A) Los síntomas del paciente eran: fiebre alta, cefalea y tos; sin embargo, dio negativo a la prueba.", "B) Los síntomas, del paciente eran fiebre alta cefalea, y tos sin embargo dio negativo.", "C) Los síntomas del paciente, eran fiebre alta, cefalea, y tos; sin embargo dio negativo."],
+        correct: 0,
+        explanation: "Retroalimentación: La primera opción estructura adecuadamente los elementos enumerados, introduce punto y coma antes del conector discursivo largo ('sin embargo') y separa la frase con la coma correspondiente."
+    },
+    {
+        q: "Identifique cuál palabra está correctamente escrita respetando las reglas ortográficas del español.",
+        options: ["A) Exhumar", "B) Exumar", "C) Ezumar"],
+        correct: 0,
+        explanation: "Retroalimentación: El verbo 'exhumar' (desenterrar un cadáver) proviene del latín 'humus' (tierra), por lo que conserva la 'h' intermedia y la estructura gráfica con 'x'."
+    },
+    {
+        q: "Seleccione la opción que contenga un error de redundancia o vicio del lenguaje (pleonasmo).",
+        options: ["A) El médico cirujano extrajo el tumor maligno.", "B) El paciente sufrió una hemorragia de sangre profusa.", "C) Se analizaron las muestras biológicas en el laboratorio."],
+        correct: 1,
+        explanation: "Retroalimentación: La frase 'hemorragia de sangre' constituye un pleonasmo craso, puesto que por definición médica toda hemorragia es una pérdida o flujo de sangre."
+    },
+    {
+        q: "Identifique el enunciado que cumple rigurosamente con la concordancia de género y número.",
+        options: ["A) El diagnóstico y el tratamiento prescrito fueron excelentes.", "B) El diagnóstico y el tratamiento prescrita fueron excelentes.", "C) El diagnóstico y el tratamiento prescritos fueron excelente."],
+        correct: 0,
+        explanation: "Retroalimentación: Al calificar a dos sustantivos masculinos singulares coordinados ('el diagnóstico y el tratamiento'), el adjetivo compuesto debe ir en masculino plural ('prescritos' o el verbo compuesto 'fueron excelentes'). La opción A mantiene la simetría perfecta."
+    },
+
+    // =========================================================================
+    // NUEVA EXPANSIÓN: PREGUNTAS 26 A 60
+    // =========================================================================
+    {
+        q: "¿Qué organelo celular es el encargado directo de llevar a cabo la respiración celular y la producción mayoritaria de moléculas de ATP?",
+        options: ["A) Mitocondria", "B) Aparato de Golgi", "C) Ribosoma"],
+        correct: 0,
+        explanation: "Retroalimentación: Las mitocondrias son los centros energéticos de la célula, responsables de la respiración celular aeróbica y de generar ATP mediante la fosforilación oxidativa."
+    },
+    {
+        q: "Un paciente llega a urgencias con una herida cortante severa. ¿Qué elemento celular de la sangre es el responsable primario de iniciar el proceso de coagulación y formar el tapón hemostático?",
+        options: ["A) Eritrocitos", "B) Plaquetas (trombocitos)", "C) Leucocitos"],
+        correct: 1,
+        explanation: "Retroalimentación: Las plaquetas se adhieren y se agregan en el sitio de una lesión vascular para constituir el tapón hemostático primario, deteniendo inicialmente la hemorragia."
+    },
+    {
+        q: "¿Cuál es la principal función de los alvéolos dentro del sistema respiratorio humano?",
+        options: ["A) Realizar el intercambio de gases (hematosis) entre el aire inspirado y la sangre", "B) Conducir el aire desde la tráquea hasta los bronquiolos terminales", "C) Filtrar las partículas macroscópicas de polvo suspendidas en el aire"],
+        correct: 0,
+        explanation: "Retroalimentación: Los alvéolos son las unidades funcionales donde se genera la hematosis o intercambio pasivo de oxígeno y dióxido de carbono por difusión."
+    },
+    {
+        q: "En salud pública, las acciones encaminadas al diagnóstico temprano y tratamiento oportuno para limitar el daño de una patología en sus fases iniciales corresponden a la:",
+        options: ["A) Prevención primaria", "B) Prevención secundaria", "C) Prevención terciaria"],
+        correct: 1,
+        explanation: "Retroalimentación: Según el modelo de Leavell y Clark, la prevención secundaria actúa en el período patogénico buscando detectar la enfermedad a tiempo mediante tamizajes u órdenes médicas tempranas."
+    },
+    {
+        q: "Tipo de articulación móvil (diartrosis) que permite principalmente movimientos de flexión y extensión en un solo eje anatómico, como ocurre en la rodilla o el codo.",
+        options: ["A) Anfiartrosis", "B) Sinartrosis", "C) Gínglimo o bisagra"],
+        correct: 2,
+        explanation: "Retroalimentación: Las articulaciones en gínglimo o bisagra restringen los movimientos a flexión y extensión sobre un solo eje, un rasgo típico de las diartrosis de la rodilla."
+    },
+    {
+        q: "¿Qué hormona es producida por la glándula tiroides y tiene la función principal de regular el metabolismo basal del organismo?",
+        options: ["A) Tiroxina (T4)", "B) Paratohormona (PTH)", "C) Calcitonina"],
+        correct: 0,
+        explanation: "Retroalimentación: La tiroxina (T4) y la triyodotironina (T3) aumentan el consumo de oxígeno y estimulan el metabolismo celular en casi todos los tejidos corporales."
+    },
+    {
+        q: "¿Cuál es la unidad estructural y funcional del riñón encargada de filtrar la sangre y formar la orina?",
+        options: ["A) Nefrona", "B) Glomérulo aislado", "C) Tubo colector"],
+        correct: 0,
+        explanation: "Retroalimentación: La nefrona es la unidad funcional del riñón; cada riñón humano contiene aproximadamente un millón de ellas para realizar la filtración, reabsorción y secreción."
+    },
+    {
+        q: "En el aparato reproductor femenino, ¿en qué estructura anatómica específica ocurre habitualmente el proceso biológico de la fecundación?",
+        options: ["A) Útero (matriz)", "B) Trompas de Falopio", "C) Ovarios"],
+        correct: 1,
+        explanation: "Retroalimentación: La fecundación ocurre en el tercio externo o ampolla de las trompas de Falopio, donde el óvulo se encuentra con los espermatozoides."
+    },
+    {
+        q: "¿Qué organelo es responsable de la digestión y degradación de material intracelular o extracelular gracias a su contenido de enzimas hidrolíticas ácidas?",
+        options: ["A) Lisosoma", "B) Peroxisoma", "C) Vacuola de secreción"],
+        correct: 0,
+        explanation: "Retroalimentación: Los lisosomas contienen hidrolasas ácidas capaces de romper proteínas, ácidos nucleicos y lípidos durante la autofagia o fagocitosis."
+    },
+    {
+        q: "En epidemiología, ¿cómo se define el período de incubación de una enfermedad transmisible?",
+        options: ["A) El tiempo que tarda el paciente en recuperarse por completo de la enfermedad.", "B) El intervalo entre la exposición al agente infeccioso y la aparición del primer síntoma.", "C) El tiempo en el cual el paciente es capaz de contagiar a otras personas."],
+        correct: 1,
+        explanation: "Retroalimentación: El periodo de incubación abarca desde que el patógeno ingresa al huésped hasta que este manifiesta los primeros signos clínicos visibles."
+    },
+    {
+        q: "Simplifique por completo la siguiente expresión algebraica reuniendo términos semejantes:\n3x - 5y + 2x + 8y",
+        options: ["A) 5x - 3y", "B) 5x + 3y", "C) 6x + 3y"],
+        correct: 1,
+        explanation: "Retroalimentación: Agrupando las variables por separado: (3x + 2x) = 5x; por otro lado (-5y + 8y) = 3y. Obtenemos un total consolidado de 5x + 3y."
+    },
+    {
+        q: "¿Cuál es el volumen geométrico total de un cubo cuya arista o lado mide exactamente 4 cm?",
+        options: ["A) 12 cm³", "B) 16 cm³", "C) 64 cm³"],
+        correct: 2,
+        explanation: "Retroalimentación: La fórmula para calcular el volumen de un cubo es lado al cubo (l³). Multiplicando de forma directa: 4 * 4 * 4 = 64 cm³."
+    },
+    {
+        q: "Una urna contiene 4 esferas rojas, 3 esferas azules y 5 esferas verdes. Si se extrae una sola de manera completamente aleatoria, ¿cuál es la probabilidad exacta de que sea azul?",
+        options: ["A) 1/4 (0.25)", "B) 1/3 (0.33)", "C) 3/10 (0.30)"],
+        correct: 0,
+        explanation: "Retroalimentación: Aplicando la regla de Laplace: casos favorables (3 azules) entre casos totales (4+3+5 = 12). 3/12 simplificado equivale a 1/4 o 0.25."
+    },
+    {
+        q: "Encuentre los valores numéricos de 'x' que satisfacen la siguiente ecuación cuadrática de segundo grado: x² - 9 = 0",
+        options: ["A) x = 9, x = -9", "B) x = 3, x = -3", "C) x = 4.5, x = -4.5"],
+        correct: 1,
+        explanation: "Retroalimentación: Despejando la incógnita: x² = 9. Al extraer la raíz cuadrada a ambos miembros de la ecuación, se obtienen dos raíces: x = 3 y x = -3."
+    },
+    {
+        q: "Calcule la media aritmética (promedio) de las siguientes calificaciones obtenidas por un grupo de estudio médico: 8, 9, 10, 7, 6.",
+        options: ["A) 8", "B) 8.5", "C) 7.8"],
+        correct: 0,
+        explanation: "Retroalimentación: Sumando los cinco valores: 8 + 9 + 10 + 7 + 6 = 40. Al dividir el resultado entre el número total de elementos (5), obtenemos 40 / 5 = 8."
+    },
+    {
+        q: "Si el costo comercial de un baumanómetro digital es de $1,200 pesos y el distribuidor ofrece un descuento exclusivo del 15%, ¿cuánto se pagará finalmente por él?",
+        options: ["A) $1,020 pesos", "B) $1,050 pesos", "C) $1,185 pesos"],
+        correct: 0,
+        explanation: "Retroalimentación: El 15% de 1,200 se calcula multiplicando 1200 * 0.15 = 180. Restando el descuento al valor base: 1200 - 180 = $1,020 pesos."
+    },
+    {
+        q: "¿Cuál es el resultado matemático correcto al resolver la siguiente operación combinada respetando la jerarquía de operadores?  5 + 3 * (8 - 2) / 2",
+        options: ["A) 24", "B) 14", "C) 29"],
+        correct: 1,
+        explanation: "Retroalimentación: Primero resolvemos el paréntesis: (8 - 2) = 6. Luego multiplicaciones y divisiones de izquierda a derecha: 3 * 6 = 18; e 18 / 2 = 9. Al final la suma: 5 + 9 = 14."
+    },
+    {
+        q: "Dos ángulos se consideran complementarios si la suma de sus medidas angulares equivale exactamente a 90°. Si el ángulo A mide 35°, ¿cuánto mide su ángulo complementario?",
+        options: ["A) 145°", "B) 55°", "C) 65°"],
+        correct: 1,
+        explanation: "Retroalimentación: Restando el ángulo conocido al total requerido para complementar: 90° - 35° = 55°."
+    },
+    {
+        passage: "TEXTO C: La bioética no es un conjunto de prohibiciones dogmáticas, sino un ejercicio deliberativo ante los dilemas que imponen los constantes avances tecnológicos en la medicina. Su propósito central no radica en frenar la investigación científica, sino en humanizarla, asegurando que los principios fundamentales de autonomía del paciente y beneficencia clínica prevalezcan permanentemente sobre intereses mercantiles o de experimentación descontrolada.",
+        q: "De acuerdo con el contenido del Texto C, ¿cuál es el objetivo central e imperativo de la bioética?",
+        options: ["A) Detener el avance tecnológico de los laboratorios farmacéuticos.", "B) Humanizar la investigación médica protegiendo los derechos y principios del paciente.", "C) Fomentar los rendimientos mercantiles derivados de la experimentación clínica."],
+        correct: 1,
+        explanation: "Retroalimentación: El texto estipula directamente que la meta de la bioética es humanizar la investigación resguardando la autonomía y la beneficencia del paciente sobre el dinero."
+    },
+    {
+        passage: "TEXTO C: La bioética no es un conjunto de prohibiciones dogmáticas, sino un ejercicio deliberativo ante los dilemas que imponen los constantes avances tecnológicos en la medicina. Su propósito central no radica en frenar la investigación científica, sino en humanizarla, asegurando que los principios fundamentales de autonomía del paciente y beneficencia clínica prevalezcan permanentemente sobre intereses mercantiles o de experimentación descontrolada.",
+        q: "¿Qué significado adquiere la palabra 'deliberativo' en el fragmento anterior?",
+        options: ["A) Que implica un proceso de reflexión, examen cuidadoso y discusión analítica.", "B) Que se ejecuta de manera autoritaria sin consultar segundas opiniones.", "C) Que carece de importancia y se resuelve al azar de forma descuidada."],
+        correct: 0,
+        explanation: "Retroalimentación: Deliberar implica analizar pros y contras de un dilema complejo mediante la reflexión profunda y la discusión crítica."
+    },
+    {
+        passage: "TEXTO D: El descubrimiento de la penicilina por Alexander Fleming en 1928 marcó un hito en la historia médica. Antes de los antibióticos, una simple herida superficial o una infección dental común podían desencadenar una septicemia mortal. Sin embargo, el uso indiscriminado y sin prescripción de estos fármacos en el siglo XXI ha acelerado la resistencia bacteriana, un fenómeno global donde los patógenos mutan para volverse inmunes a los tratamientos, amenazando con regresar a la humanidad a una era preantibiótica.",
+        q: "A partir de lo leído en el Texto D, ¿cuál es la consecuencia directa del uso indiscriminado de los antibióticos modernos?",
+        options: ["A) El aumento de heridas superficiales infecciosas.", "B) La aceleración de la resistencia bacteriana a nivel global.", "C) La erradicación definitiva de la septicemia."],
+        correct: 1,
+        explanation: "Retroalimentación: El texto menciona textualmente que el uso sin control ni prescripción médica ha acelerado la resistencia de los patógenos bacterianos a los fármacos."
+    },
+    {
+        passage: "TEXTO D: El descubrimiento de la penicilina por Alexander Fleming en 1928 marcó un hito en la historia médica. Antes de los antibióticos, una simple herida superficial o una infección dental común podían desencadenar una septicemia mortal. Sin embargo, el uso indiscriminado y sin prescripción de estos fármacos en el siglo XXI ha acelerado la resistencia bacteriana, un fenómeno global donde los patógenos mutan para volverse inmunes a los tratamientos, amenazando con regresar a la humanidad a una era preantibiótica.",
+        q: "¿Qué tratamiento o enfoque discursivo le da el autor al problema de la resistencia bacteriana?",
+        options: ["A) Lo plantea como un logro evolutivo natural de la medicina biológica.", "B) Lo describe como una amenaza crítica latente para la salud humana global.", "C) Lo define como un mito infundado proveniente de la era preantibiótica."],
+        correct: 1,
+        explanation: "Retroalimentación: El autor advierte que es un peligro que amenaza con regresar a la humanidad a épocas donde no había curas efectivas contra bacterias."
+    },
+    {
+        q: "Elija la opción que complete correctamente los espacios en blanco respetando el uso adecuado de las grafías en español:\nEl médico clínico tuvo que ________ la herida quirúrgica con sumo cuidado para descartar una ________ infección.",
+        options: ["A) revisar - grave", "B) rebisar - grabé", "C) revisar - grabhe"],
+        correct: 0,
+        explanation: "Retroalimentación: El verbo 'revisar' se escribe estrictamente con 'v' y con 's' (derivado de revisión). El adjetivo 'grave' (delicado/peligroso) se escribe con 'g' y 'v'."
+    },
+    {
+        q: "Identifique la opción que carece por completo de errores ortográficos y de acentuación diacrítica/prosódica.",
+        options: ["A) El analisis medico confirmo que el paciente padecia una de las infecciones.", "B) El análisis médico confirmó que el paciente padecía una infección crónica.", "C) El análisis medico confirmó que el paciénte padecía una infección cronica."],
+        correct: 1,
+        explanation: "Retroalimentación: Las palabras 'análisis', 'médico' y 'crónica' son esdrújulas y llevan tilde obligatoria. 'Confirmó' y 'padecía' llevan tilde por regla aguda y de hiato respectivamente."
+    },
+    {
+        q: "Elija la opción que complete los espacios en blanco de forma impecable usando la ortografía correcta:\nEl interno tuvo que ________ las gasas usadas en el contenedor especial antes de que el jefe de piso ________ a supervisar.",
+        options: ["A) echar - vaya", "B) hechar - vaya", "C) echar - balla"],
+        correct: 0,
+        explanation: "Retroalimentación: El verbo 'echar' (tirar/depositar) jamás lleva 'h'. Por otra parte, 'vaya' proviene del verbo ir (subjuntivo), escrito con 'v' y 'y'."
+    },
+    {
+        q: "Seleccione el enunciado que posee una redacción clara, óptima y libre de vicios sintácticos (como el dequeísmo).",
+        options: ["A) El doctor me comentó de que la cirugía se programaría para el próximo lunes.", "B) El doctor me comentó que la cirugía se programaría para el próximo lunes.", "C) El doctor me comentó que la cirugía de que se haría el lunes próximo."],
+        correct: 1,
+        explanation: "Retroalimentación: Al hacer la pregunta ¿Qué comentó el doctor?, la respuesta lógica directa es 'que la cirugía...'. Introducir el 'de' es un error conocido como dequeísmo."
+    },
+    {
+        q: "Seleccione la opción donde el uso de las letras mayúsculas cumpla estrictamente con la normativa de la Real Academia Española (RAE).",
+        options: ["A) El Doctor Martínez labora en el Hospital General de México.", "B) El doctor Martínez labora en el hospital general de México.", "C) El doctor Martínez labora en el Hospital General de México."],
+        correct: 2,
+        explanation: "Retroalimentación: Los títulos profesionales o cargos (doctor, licenciado) van con minúscula inicial según la RAE. Los nombres propios de instituciones van con mayúscula inicial."
+    },
+    {
+        q: "¿Qué tipo de células del sistema digestivo humano se localizan en las glándulas gástricas y se encargan de secretar el ácido clorhídrico (HCl)?",
+        options: ["A) Celas parietales (oxínticas)", "B) Células principales (cimógenas)", "C) Células mucosas del cuello"],
+        correct: 0,
+        explanation: "Retroalimentación: Las células parietales u oxínticas secretan ácido clorhídrico y factor intrínseco, necesarios para activar la digestión de proteínas."
+    },
+    {
+        q: "¿Cuál de los siguientes ejemplos representa un tipo de tejido conectivo en estado líquido?",
+        options: ["A) El cartílago hialino", "B) La sangre", "C) El tejido óseo compacto"],
+        correct: 1,
+        explanation: "Retroalimentación: La sangre posee una matriz extracelular líquida (plasma) en la cual se suspenden los elementos formes, clasificándose como tejido conectivo especializado."
+    },
+    {
+        q: "Plano anatómico que divide al cuerpo humano de forma horizontal, segmentándolo en una porción superior (cefálica) y una porción inferior (caudal).",
+        options: ["A) Plano sagital", "B) Plano coronal", "C) Plano transversal o axial"],
+        correct: 2,
+        explanation: "Retroalimentación: El plano transversal divide perpendicularmente el eje longitudinal del cuerpo en mitades arriba (superior) y abajo (inferior)."
+    },
+    {
+        q: "Calcule el perímetro total de un terreno rectangular que presenta una base de 10 metros y una altura de 5 metros.",
+        options: ["A) 30 metros", "B) 15 metros", "C) 50 metros"],
+        correct: 0,
+        explanation: "Retroalimentación: El perímetro de un rectángulo se calcula sumando todos sus lados: P = 2(base) + 2(altura). Reemplazando: 2(10) + 2(5) = 20 + 10 = 30 metros."
+    },
+    {
+        q: "Determine el rango estadístico del siguiente conjunto de valores de presión arterial sistólica registrados en urgencias: 120, 145, 110, 160, 135.",
+        options: ["A) 134", "B) 25", "C) 50"],
+        correct: 2,
+        explanation: "Retroalimentación: El rango se calcula restando el valor mínimo al valor máximo del conjunto. Aquí el valor máximo es 160 y el mínimo es 110: 160 - 110 = 50."
+    },
+    {
+        q: "Complete el enunciado empleando el conector discursivo de causa correcto:\nEl paciente de traumatología no asistió a la consulta de seguimiento ________ no contaba con transporte adaptado.",
+        options: ["A) sin embargo", "B) ya que", "C) por lo tanto"],
+        correct: 1,
+        explanation: "Retroalimentación: El conector 'ya que' introduce de manera lógica la causa directa por la cual el paciente no acudió al hospital."
+    },
+    {
+        q: "Elija la opción que complete correctamente el enunciado según el uso normativo de las palabras homófonas 'tubo' y 'tuvo':\nEl plomero cambió el ________ de agua del consultorio, mientras el médico ________ que reprogramar sus citas.",
+        options: ["A) tubo - tuvo", "B) tuvo - tubo", "C) tubo - tubo"],
+        correct: 0,
+        explanation: "Retroalimentación: 'Tubo' con 'b' hace referencia a la pieza cilíndrica hueca; 'tuvo' con 'v' corresponde a la conjugación en pasado del verbo tener."
+    },
+    {
+        q: "Seleccione el enunciado que incurre en un error en el uso del gerundio (gerundio de posterioridad incorrecto).",
+        options: ["A) El cirujano operó al paciente cantando su pieza musical favorita.", "B) El paciente ingresó a la clínica, falleciendo tres horas más tarde.", "C) El enfermero entró a la habitación sosteniendo las jeringas."],
+        correct: 1,
+        explanation: "Retroalimentación: El gerundio jamás debe usarse para indicar una acción posterior a la del verbo principal. Decir 'ingresó... falleciendo horas más tarde' es incorrecto; debe ser 'y falleció tres horas más tarde'."
+    },
+// =========================================================================
+    // BLOQUE FINAL: PREGUNTAS 61 A 100
+    // =========================================================================
+    {
+        q: "¿Cuál es el principal órgano linfoide primario donde tiene lugar la maduración, selección y diferenciación de los linfocitos T?",
+        options: ["A) El bazo", "B) El timo", "C) Los ganglios linfáticos"],
+        correct: 1,
+        explanation: "Retroalimentación: El timo es un órgano linfoide primario donde los progenitores celulares maduran para convertirse en linfocitos T inmunocompetentes."
+    },
+    {
+        q: "¿Qué hormona liberada por la neurohipófisis actúa de forma directa en los túbulos colectores del riñón para incrementar la reabsorción pasiva de agua?",
+        options: ["A) Aldosterona", "B) Hormona antidiurética (ADH) o vasopresina", "C) Oxitocina"],
+        correct: 1,
+        explanation: "Retroalimentación: La ADH o vasopresina aumenta la permeabilidad al agua en los túbulos colectores, ayudando a concentrar la orina y retener líquidos en el cuerpo."
+    },
+    {
+        q: "Dentro de la división macroscópica del sistema óseo humano, ¿cuál de los siguientes huesos forma parte estricta del esqueleto axial?",
+        options: ["A) El fémur", "B) El esternón", "C) La clavícula"],
+        correct: 1,
+        explanation: "Retroalimentación: El esqueleto axial protege los órganos internos y corre a lo largo del eje central (cráneo, columna vertebral, costillas y esternón). Los miembros pertenecen al apendicular."
+    },
+    {
+        q: "¿Cómo se denomina al espacio submicroscópico a través del cual se transmiten los neurotransmisores químicos de una neurona presináptica a una célula postsináptica?",
+        options: ["A) Hendidura o espacio sináptico", "B) Axón mielinizado", "C) Dendrita receptora"],
+        correct: 0,
+        explanation: "Retroalimentación: En la sinapsis química, los neurotransmisores se vierten al espacio o hendidura sináptica para unirse a los receptores de la siguiente célula."
+    },
+    {
+        q: "¿Qué órgano del aparato digestivo es el responsable de sintetizar la bilis para la posterior emulsión y digestión de los lípidos en el intestino delgado?",
+        options: ["A) El páncreas", "B) El hígado", "C) La vesícula biliar"],
+        correct: 1,
+        explanation: "Retroalimentación: El hígado produce y secreta la bilis de forma continua; la vesícula biliar únicamente la almacena y concentra hasta que es requerida."
+    },
+    {
+        q: "Al medir la presión arterial en un paciente adulto, ¿a qué fenómeno mecánico del ciclo cardíaco corresponde fisiológicamente el valor de la presión sistólica?",
+        options: ["A) A la contracción de los ventrículos cardíacos", "B) Al llenado pasivo de las aurículas", "C) A la relajación general del miocardio"],
+        correct: 0,
+        explanation: "Retroalimentación: La presión sistólica (el número más alto) mide la fuerza que ejerce la sangre contra las paredes arteriales justo cuando los ventrículos se contraen."
+    },
+    {
+        q: "¿Cómo se le denomina al volumen de aire que entra o sale de los pulmones de un ser humano durante una respiración normal, quieta y en reposo?",
+        options: ["A) Volumen de reserva espiratoria", "B) Volumen corriente o tidal", "C) Capacidad vital total"],
+        correct: 1,
+        explanation: "Retroalimentación: El volumen corriente (aproximadamente 500 mL en adultos) es la cantidad de aire inspirado y espirado en un ciclo respiratorio basal."
+    },
+    {
+        q: "Desde el punto de vista de la microbiología clínica, ¿cuál es una diferencia fundamental entre una bacteria y un virus?",
+        options: ["A) Las bacterias poseen estructura celular procariota y los virus son agregados acelulares.", "B) Los virus tienen metabolismo propio y las bacterias requieren obligatoriamente una célula hospedadora.", "C) Las bacterias carecen de material genético propio y los virus poseen ADN y ARN simultáneamente."],
+        correct: 0,
+        explanation: "Retroalimentación: Las bacterias son organismos vivos unicelulares procariotas. Los virus no son células, carecen de metabolismo y son considerados parásitos moleculares obligados."
+    },
+    {
+        q: "Identifique el orden correcto de los niveles de organización biológica, ordenados de la estructura de menor complejidad a la de mayor complejidad estructural:",
+        options: ["A) Célula -> Órgano -> Tejido -> Sistema", "B) Célula -> Tejido -> Órgano -> Sistema", "C) Tejido -> Célula -> Sistema -> Órgano"],
+        correct: 1,
+        explanation: "Retroalimentación: Las células idénticas forman tejidos; varios tejidos integran un órgano con funciones específicas; y los órganos se coordinan para dar lugar a un sistema o aparato."
+    },
+    {
+        q: "¿Qué glándulas endocrinas, localizadas en la superficie posterior de la tiroides, secretan la hormona encargada de elevar los niveles de calcio en la sangre (hipercalcemiante)?",
+        options: ["A) Glándulas paratiroides", "B) Glándulas suprarrenales", "C) Glándula pineal"],
+        correct: 0,
+        explanation: "Retroalimentación: Las glándulas paratiroides liberan la paratohormona (PTH), la cual estimula la resorción ósea para subir el calcio sérico cuando este disminuye."
+    },
+    {
+        q: "Resuelva el siguiente despeje de primer grado para encontrar el valor numérico de la variable 'x':\n3x - 7 = 14",
+        options: ["A) x = 5", "B) x = 7", "C) x = 6"],
+        correct: 1,
+        explanation: "Retroalimentación: Pasando el -7 sumando al miembro derecho: 3x = 14 + 7 -> 3x = 21. Dividiendo entre 3: x = 21 / 3, lo cual da x = 7."
+    },
+    {
+        q: "Determine el siguiente término lógico que continúa de forma correcta la sucesión numérica:\n2, 5, 10, 17, ___",
+        options: ["A) 24", "B) 26", "C) 28"],
+        correct: 1,
+        explanation: "Retroalimentación: El patrón consiste en sumar números impares consecutivos: 2 (+3) = 5; 5 (+5) = 10; 10 (+7) = 17. Por lo tanto, toca sumar +9: 17 + 9 = 26."
+    },
+    {
+        q: "¿Cuál es el resultado correcto de factorizar el siguiente trinomio de segundo grado? x² - 5x + 6",
+        options: ["A) (x - 2)(x - 3)", "B) (x + 2)(x + 3)", "C) (x - 6)(x + 1)"],
+        correct: 0,
+        explanation: "Retroalimentación: Buscamos dos números que multiplicados den +6 y sumados algebraicamente den -5. Esos números son -2 y -3. Así, la factorización es (x-2)(x-3)."
+    },
+    {
+        q: "Si dos eventos A y B son completamente mutuamente excluyentes dentro de un muestreo clínico, ¿cuál es la regla axiomática para calcular la probabilidad de que ocurra el evento A o el evento B?",
+        options: ["A) P(A o B) = P(A) * P(B)", "B) P(A o B) = P(A) + P(B)", "C) P(A o B) = P(A) - P(B)"],
+        correct: 1,
+        explanation: "Retroalimentación: Para eventos mutuamente excluyentes (que no pueden ocurrir al mismo tiempo), la probabilidad de la unión de ambos es simplemente la suma de sus probabilidades individuales."
+    },
+    {
+        q: "Calcule el área geométrica total de un triángulo que presenta una base de 6 cm y una altura equivalente a 8 cm.",
+        options: ["A) 48 cm²", "B) 24 cm²", "C) 14 cm²"],
+        correct: 1,
+        explanation: "Retroalimentación: La fórmula del área del triángulo es (base * altura) / 2. Sustituyendo los valores: (6 * 8) / 2 = 48 / 2 = 24 cm²."
+    },
+    {
+        q: "Un glucómetro tiene un costo de lista de $500 pesos. Si la tienda médica te otorga un descuento directo del 20%, ¿cuál es el precio final que debes pagar por el equipo?",
+        options: ["A) $400 pesos", "B) $450 pesos", "C) $420 pesos"],
+        correct: 0,
+        explanation: "Retroalimentación: El 20% de 500 se calcula como 500 * 0.20 = 100 pesos de descuento. Restando al precio de lista: 500 - 100 = $400 pesos."
+    },
+    {
+        q: "Encuentre el valor de la moda dentro del siguiente registro epidemiológico que representa los días de estancia de 7 pacientes: 5, 8, 5, 9, 3, 5, 8.",
+        options: ["A) 5", "B) 8", "C) 6.1"],
+        correct: 0,
+        explanation: "Retroalimentación: La moda es el valor que aparece con mayor frecuencia en un conjunto de datos. En esta serie el número 5 se repite un total de 3 veces."
+    },
+    {
+        q: "Dentro de un triángulo rectángulo, ¿cómo se define matemáticamente la función trigonométrica de la Tangente?",
+        options: ["A) Cateto Adyacente / Hipotenusa", "B) Cateto Opuesto / Cateto Adyacente", "C) Cateto Opuesto / Hipotenusa"],
+        correct: 1,
+        explanation: "Retroalimentación: La tangente de un ángulo agudo en un triángulo rectángulo es la razón entre la longitud del cateto opuesto y la del cateto adyacente."
+    },
+    {
+        q: "Resuelva el siguiente sistema de ecuaciones simultáneas para determinar los valores exactos de 'x' e 'y':\nx + y = 10\nx - y = 2",
+        options: ["A) x = 6, y = 4", "B) x = 5, y = 5", "C) x = 7, y = 3"],
+        correct: 0,
+        explanation: "Retroalimentación: Sumando ambas ecuaciones verticalmente: (x+x) + (y-y) = 10 + 2 -> 2x = 12 -> x = 6. Sustituyendo en la primera: 6 + y = 10 -> y = 4."
+    },
+    {
+        q: "¿Qué concepto de la estadística descriptiva se define como la medida que indica qué tan dispersos se encuentran los datos numéricos con respecto al promedio de su media aritmética?",
+        options: ["A) Mediana", "B) Desviación estándar", "C) Distribución de frecuencias"],
+        correct: 1,
+        explanation: "Retroalimentación: La desviación estándar mide el grado de dispersión o variabilidad de un conjunto de datos con relación a su media aritmética."
+    },
+    {
+        passage: "TEXTO E: En 1980, la Organización Mundial de la Salud (OMS) declaró oficialmente la erradicación global de la viruela, convirtiéndola en la primera enfermedad infecciosa humana combatida por completo mediante una estrategia masiva de vacunación internacional. Este hito histórico demostró que la coordinación geopolítica y científica es capaz de transformar el panorama epidemiológico global, salvando millones de vidas de un patógeno que causó estragos omnipresentes durante milenios.",
+        q: "A partir de lo expuesto en el Texto E, seleccione cuál fue el factor clave e indispensable para lograr la erradicación de la viruela.",
+        options: ["A) El descubrimiento natural de la inmunidad hereditaria en las poblaciones afectas.", "B) Una estrategia masiva de vacunación internacional coordinada con la OMS.", "C) El aislamiento obligatorio y definitivo de todos los pacientes contagiados."],
+        correct: 1,
+        explanation: "Retroalimentación: El texto indica de forma literal que el éxito residió en la vacunación masiva coordinada a nivel global y científico."
+    },
+    {
+        passage: "TEXTO E: En 1980, la Organización Mundial de la Salud (OMS) declaró oficialmente la erradicación global de la viruela, convirtiéndola en la primera enfermedad infecciosa humana combatida por completo mediante una estrategia masiva de vacunación internacional. Este hito histórico demostró que la coordinación geopolítica y científica es capaz de transformar el panorama epidemiológico global, salvando millones de vidas de un patógeno que causó estragos omnipresentes durante milenios.",
+        q: "¿Qué significado contextual se le atribuye al vocablo 'omnipresentes' utilizado en el fragmento previo?",
+        options: ["A) Que el daño estaba localizado exclusivamente en una pequeña región geográfica.", "B) Que se manifestaba de manera simultánea en todas partes o con un alcance generalizado.", "C) Que aparecía únicamente de forma intermitente en estaciones específicas del año."],
+        correct: 1,
+        explanation: "Retroalimentación: Omnipresente denota algo que está en todas partes; aplicado a la viruela, refiere a su presencia generalizada y catastrófica a nivel mundial."
+    },
+    {
+        passage: "TEXTO F: La integración de la Inteligencia Artificial (IA) en la imagenología médica ha generado una revolución en el diagnóstico temprano. Algoritmos avanzados de aprendizaje profundo pueden procesar miles de tomografías axiales en segundos, identificando microlesiones oncológicas imperceptibles para el ojo humano. Lejos de desplazar al radiólogo clínico, esta herramienta computacional funge como un copiloto de alta precisión, minimizando los márgenes de falsos negativos y optimizando tiempos.",
+        q: "Identifique cuál es la postura fundamental del autor del Texto F respecto al uso de la Inteligencia Artificial en los hospitales.",
+        options: ["A) Considera que la IA sustituirá por completo la profesión de los médicos radiólogos.", "B) Defiende que la IA actúa como una herramienta de apoyo que potencia la precisión del diagnóstico humano.", "C) Rechaza los algoritmos de aprendizaje por considerarlos inseguros para los pacientes."],
+        correct: 1,
+        explanation: "Retroalimentación: El autor aclara explícitamente que la IA no viene a desplazar al médico, sino a fungir como un 'copiloto de alta precisión' para disminuir errores."
+    },
+    {
+        passage: "TEXTO F: La integración de la Inteligencia Artificial (IA) en la imagenología médica ha generado una revolución en el diagnóstico temprano. Algoritmos avanzados de aprendizaje profundo pueden procesar miles de tomografías axiales en segundos, identificando microlesiones oncológicas imperceptibles para el ojo humano. Lejos de desplazar al radiólogo clínico, esta herramienta computacional funge como un copiloto de alta precisión, minimizando los márgenes de falsos negativos y optimizando tiempos.",
+        q: "¿Cuál de los siguientes enunciados extraídos del Texto F expresa estrictamente un HECHO verificable en lugar de una opinión?",
+        options: ["A) La integración de la Inteligencia Artificial ha generado una revolución hermosa.", "B) Algoritmos avanzados de aprendizaje profundo pueden procesar miles de tomografías axiales en segundos.", "C) Es mejor tener un copiloto virtual que confiar ciegamente en la experiencia médica."],
+        correct: 1,
+        explanation: "Retroalimentación: El procesamiento de miles de imágenes en segundos por algoritmos es un hecho cuantificable y comprobable tecnológicamente, sin juicios de valor."
+    },
+    {
+        passage: "TEXTO G: El agua corporal es el eje de la homeostasis térmica. Cuando el organismo se somete a ejercicio extenuante, el hipotálamo activa las glándulas sudoríparas para disipar calor por evaporación. Si la tasa de reposición hídrica es menor a la pérdida, se desencadena una cascada de deshidratación que eleva la osmolaridad plasmática, comprometiendo gravemente el volumen de eyección cardíaca.",
+        q: "Con base en la información técnica del Texto G, ¿qué sucede si un atleta no repone el agua que pierde al sudar?",
+        options: ["A) Disminuye la temperatura de su cuerpo de forma descontrolada.", "B) Se eleva la osmolaridad plasmática y se compromete el volumen de eyección de su corazón.", "C) El hipotálamo bloquea permanentemente las glándulas sudoríparas."],
+        correct: 1,
+        explanation: "Retroalimentación: El texto afirma textualmente que la falta de reposición hídrica eleva la osmolaridad en plasma y daña el volumen de eyección del corazón."
+    },
+    {
+        passage: "TEXTO G: El agua corporal es el eje de la homeostasis térmica. Cuando el organismo se somete a ejercicio extenuante, el hipotálamo activa las glándulas sudoríparas para disipar calor por evaporación. Si la tasa de reposición hídrica es menor a la pérdida, se desencadena una cascada de deshidratación que eleva la osmolaridad plasmática, comprometiendo gravemente el volumen de eyección cardíaca.",
+        q: "Seleccione el título más adecuado y preciso para el contenido sintetizado en el Texto G.",
+        options: ["A) Mecanismos patológicos de las glándulas del cuerpo humano.", "B) Importancia del agua en la homeostasis térmica y el rendimiento cardíaco.", "C) El hipotálamo y sus funciones exclusivas en el sistema endocrino."],
+        correct: 1,
+        explanation: "Retroalimentación: El título B engloba perfectamente las dos ideas del texto: la regulación del calor por medio del agua y su impacto en la función del corazón."
+    },
+    {
+        passage: "TEXTO G: El agua corporal es el eje de la homeostasis térmica. Cuando el organismo se somete a ejercicio extenuante, el hipotálamo activa las glándulas sudoríparas para disipar calor por evaporación. Si la tasa de reposición hídrica es menor a la pérdida, se desencadena una cascada de deshidratación que eleva la osmolaridad plasmática, comprometiendo gravemente el volumen de eyección cardíaca.",
+        q: "¿A qué tipo de público especializado va dirigida principalmente la temática abordada en el Fragmento G?",
+        options: ["A) A estudiantes del área de ciencias de la salud o entrenamiento deportivo.", "B) Al público en general interesado en relatos de literatura de ficción.", "C) A ingenieros encargados del diseño de software médico computacional."],
+        correct: 0,
+        explanation: "Retroalimentación: Por el léxico empleado ('homeostasis', 'osmolaridad plasmática', 'hipotálamo'), el texto posee un enfoque académico apto para perfiles de salud o deporte."
+    },
+    {
+        passage: "TEXTO G: El agua corporal es el eje de la homeostasis térmica. Cuando el organismo se somete a ejercicio extenuante, el hipotálamo activa las glándulas sudoríparas para disipar calor por evaporación. Si la tasa de reposición hídrica es menor a la pérdida, se desencadena una cascada de deshidratación que eleva la osmolaridad plasmática, comprometiendo gravemente el volumen de eyección cardíaca.",
+        q: "¿Cuál es el órgano integrador encargado de detectar el aumento de calor y ordenar la activación del sudor según el texto?",
+        options: ["A) El corazón", "B) El hipotálamo", "C) Las glándulas sudoríparas"],
+        correct: 1,
+        explanation: "Retroalimentación: El fragmento estipula directamente: 'el hipotálamo activa las glándulas sudoríparas para disipar calor por evaporación'."
+    },
+    {
+        q: "Complete la oración seleccionando la opción que exhiba una ortografía intachable de las grafías C, S o Z:\nLa ________ del especialista fue crucial para tomar la ________ de operar al paciente de emergencia.",
+        options: ["A) intervención - decisión", "B) interbención - desición", "C) intervención - desición"],
+        correct: 0,
+        explanation: "Retroalimentación: 'Intervención' se escribe con 'v' y finaliza en 'ción' (derivado de intervenir). 'Decisión' se escribe con 'c' al inicio y 'sión' al final (derivado de decidir)."
+    },
+    {
+        q: "Elija el conector discursivo consecutivo que le devuelva la coherencia y cohesión formal al siguiente enunciado institucional:\nLas muestras de laboratorio se contaminaron accidentalmente durante el traslado; ____________, el comité ético ordenó la invalidación total del ensayo.",
+        options: ["A) por el contrario", "B) en consecuencia", "C) ya que"],
+        correct: 1,
+        explanation: "Retroalimentación: El conector 'en consecuencia' introduce de forma lógica el efecto o resultado directo derivado del accidente con las muestras biológicas."
+    },
+    {
+        q: "Identifique el enunciado que cumple estrictamente con las reglas de concordancia gramatical cuando se emplean sustantivos colectivos coordinados.",
+        options: ["A) El grupo de médicos especialistas aprobaron el nuevo protocolo de vacunación.", "B) El grupo de médicos especialistas aprobó el nuevo protocolo de vacunación.", "C) El grupo de médicos especialistas aprobarán el nuevo protocolo de vacunación."],
+        correct: 1,
+        explanation: "Retroalimentación: El núcleo del sujeto es el sustantivo colectivo singular 'El grupo'; por lo tanto, el verbo principal debe concordar obligatoriamente en número singular ('aprobó')."
+    },
+    {
+        q: "Seleccione la opción que muestre un uso correcto de las letras mayúsculas, de acuerdo con la normativa vigente dictada por la Real Academia Española (RAE).",
+        options: ["A) El Paciente padece la enfermedad de Alzheimer desde hace tres años.", "B) El paciente padece la enfermedad de alzheimer desde hace tres años.", "C) El paciente padece la enfermedad de Alzheimer desde hace tres años."],
+        correct: 2,
+        explanation: "Retroalimentación: Los nombres de enfermedades van con minúscula inicial común ('enfermedad'). Sin embargo, si incluyen un nombre propio o apellido del descubridor ('Alzheimer'), este mantiene su mayúscula."
+    },
+    {
+        q: "Identifique el enunciado que presenta un claro vicio sintáctico o un error de construcción gramatical conocido como queísmo o dequeísmo.",
+        options: ["A) El médico está completamente seguro de que el tratamiento dará resultados positivos.", "B) A mí me parece de que el diagnóstico del laboratorio clínico está equivocado.", "C) La jefa de enfermeras insistió en que se revisaran los expedientes clínicos."],
+        correct: 1,
+        explanation: "Retroalimentación: Al estructurar la oración 'Me parece que...', es incorrecto añadir la preposición 'de' ('Me parece de que...'). Esto constituye un error de dequeísmo."
+    },
+    {
+        q: "Seleccione el enunciado que emplee de manera correcta y formal las preposiciones normativas del idioma español.",
+        options: ["A) Le recetaron un jarabe eficaz para la tos crónica.", "B) Le recetaron un jarabe eficaz contra la tos crónica.", "C) Le recetaron un jarabe eficaz de acuerdo a la tos crónica."],
+        correct: 1,
+        explanation: "Retroalimentación: En el español académico, los fármacos u objetos creados para combatir una afectación deben acompañarse de la preposición 'contra' (jarabe contra la tos, vacuna contra el virus)."
+    },
+    {
+        q: "Elija la opción que muestre un uso impecable de los dos puntos (:) antes de una estructura de enumeración anunciada.",
+        options: ["A) Los componentes de la tríada ecológica son: el huésped, el agente y el medio ambiente.", "B) La tríada ecológica se compone de tres elementos: huésped, agente causal y medio ambiente.", "C) Tres elementos componen la: tríada ecológica, huésped, agente y medio."],
+        correct: 1,
+        explanation: "Retroalimentación: Los dos puntos no deben romper la continuidad entre el verbo y su objeto directo (como ocurre en la opción A). La opción B introduce correctamente el anuncio previo de la lista."
+    },
+    {
+        q: "Complete los espacios vacíos utilizando de manera adecuada las palabras homófonas 'revelar' y 'rebelar':\nLos análisis van a ________ una patología autoinmune, por lo que el paciente no se debe ________ ante el tratamiento médico.",
+        options: ["A) revelar - rebelar", "B) rebelar - revelar", "C) revelar - revelar"],
+        correct: 0,
+        explanation: "Retroalimentación: 'Revelar' con 'v' significa descubrir algo oculto o manifestar un dato. 'Rebelar' con 'b' implica oponer resistencia o levantarse en contra de una pauta."
+    },
+    {
+        q: "Identifique cuál de las siguientes palabras está acentuada incorrectamente de acuerdo con las leyes ortográficas generales del español.",
+        options: ["A) Exámen", "B) Quirúrgico", "C) Biología"],
+        correct: 0,
+        explanation: "Retroalimentación: La palabra 'examen' es llana o grave terminada en 'n', por lo tanto, no debe llevar tilde. Su plural ('exámenes') sí se tilda por convertirse en esdrújula."
+    },
+    {
+        q: "Complete la oración con la opción que use correctamente los homófonos de la palabra 'porque':\nNo entiendo el __________ de tu negativa, __________ el tratamiento clínico es totalmente seguro.",
+        options: ["A) por qué - porqué", "B) porqué - porque", "C) porque - por qué"],
+        correct: 1,
+        explanation: "Retroalimentación: 'Porqué' (sustantivo, precedido de artículo, equivale a causa/motivo) va junto y con tilde. 'Porque' (conjunción causal, equivale a 'ya que' o 'puesto que') va junto y sin tilde."
+    }
+];
+];
+
+    let currentIndex = 0;
+    let userAnswers = new Array(reactivos.length).fill(null);
+    let timeLeft = 120 * 60; // 2 horas estrictas en segundos
+
+    const timerElement = document.getElementById('timer');
+    const countdown = setInterval(() => {
+        if (timeLeft <= 0) {
+            clearInterval(countdown);
+            finalizarExamen();
+        } else {
+            timeLeft--;
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            timerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+    }, 1000);
+
+    function renderQuestion() {
+        const container = document.getElementById('question-container');
+        const current = reactivos[currentIndex];
+        
+        document.getElementById('current-index').textContent = currentIndex + 1;
+        document.getElementById('total-questions').textContent = reactivos.length;
+
+        let passageHtml = current.passage ? `<div class="reading-passage"><strong>Lectura asociada:</strong><br>${current.passage}</div>` : '';
+
+        let optionsHtml = current.options.map((opt, i) => `
+            <button class="option-btn ${userAnswers[currentIndex] === i ? 'selected' : ''}" onclick="selectOption(${i})">
+                ${opt}
+            </button>
+        `).join('');
+
+        container.innerHTML = `
+            ${passageHtml}
+            <div class="question-text">${current.q}</div>
+            <div class="options">${optionsHtml}</div>
+        `;
+
+        document.getElementById('prev-btn').disabled = currentIndex === 0;
+        document.getElementById('next-btn').textContent = currentIndex === reactivos.length - 1 ? "Finalizar y Procesar" : "Siguiente Reactivo";
+    }
+
+    function selectOption(index) {
+        userAnswers[currentIndex] = index;
+        renderQuestion();
+    }
+
+    function changeQuestion(direction) {
+        if (direction === 1 && currentIndex === reactivos.length - 1) {
+            if(confirm("¿Confirmas la entrega definitiva de la evaluación diagnóstica?")) {
+                finalizarExamen();
+            }
+            return;
+        }
+        currentIndex += direction;
+        renderQuestion();
+    }
+
+    function finalizarExamen() {
+        clearInterval(countdown);
+        document.getElementById('quiz-wrapper').style.display = 'none';
+        document.getElementById('timer').style.display = 'none';
+        
+        let aciertos = 0;
+        userAnswers.forEach((ans, i) => {
+            if(ans === reactivos[i].correct) aciertos++;
+        });
+
+        document.getElementById('score-text').textContent = `Resultado Obtenido: ${aciertos} de ${reactivos.length} Aciertos`;
+        
+        const feedbackList = document.getElementById('feedback-list');
+        feedbackList.innerHTML = '';
+
+        reactivos.forEach((reactivo, i) => {
+            const esCorrecta = userAnswers[i] === reactivo.correct;
+            const card = document.createElement('div');
+            card.className = `feedback-card ${esCorrecta ? 'correct' : 'incorrect'}`;
+
+            let respuestaAlumno = userAnswers[i] !== null ? reactivo.options[userAnswers[i]] : "No respondida";
+            let respuestaCorrectaText = reactivo.options[reactivo.correct];
+
+            card.innerHTML = `
+                <div class="feedback-status ${esCorrecta ? 'correct' : 'incorrect'}">
+                    Reactivo N° ${i + 1} — ${esCorrecta ? '✓ ACERTADA' : '✗ INCORRECTA'}
+                </div>
+                <div style="font-weight: 600; margin-bottom: 8px;">${reactivo.q}</div>
+                <div><strong>Tu respuesta:</strong> ${respuestaAlumno}</div>
+                ${!esCorrecta ? `<div><strong>Respuesta correcta requerida:</strong> ${respuestaCorrectaText}</div>` : ''}
+                <div class="explanation-box">${reactivo.explanation}</div>
+            `;
+            feedbackList.appendChild(card);
+        });
+
+        document.getElementById('results').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    renderQuestion();
+</script>
+</body>
+</html>
