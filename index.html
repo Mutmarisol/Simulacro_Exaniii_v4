@@ -144,8 +144,16 @@
         }
     </style>
 </head>
+    
 <body>
-
+<div class="proctoring-widget" id="proctoring-box">
+    <div class="proctoring-header">Monitoreo IA Activo</div>
+    <video id="proctoring-video" autoplay playsinline muted class="proctoring-video"></video>
+    <div class="proctoring-status">
+        <span class="proctoring-dot" id="proctoring-dot"></span>
+        <span id="proctoring-text">Iniciando sistema...</span>
+    </div>
+</div>
 <div class="container">
     <div class="header">
         <div class="brand-section">
@@ -178,14 +186,6 @@
 
         <h3 style="color: var(--text); border-bottom: 2px solid var(--primary); padding-bottom: 8px; margin-top: 40px;">Reporte Técnico y Retroalimentación</h3>
         <div id="feedback-list"></div>
-    </div>
-</div>
-<div class="proctoring-widget" id="proctoring-box">
-    <div class="proctoring-header">Monitoreo IA Activo</div>
-    <video id="proctoring-video" autoplay playsinline muted class="proctoring-video"></video>
-    <div class="proctoring-status">
-        <span class="proctoring-dot" id="proctoring-dot"></span>
-        <span id="proctoring-text">Iniciando sistema...</span>
     </div>
 </div>
 <script>
@@ -814,7 +814,94 @@ const reactivos = [
         options: ["A) por qué - porqué", "B) porqué - porque", "C) porque - por qué"],
         correct: 1,
         explanation: "Retroalimentación: 'Porqué' (sustantivo, precedido de artículo, equivale a causa/motivo) va junto y con tilde. 'Porque' (conjunción causal, equivale a 'ya que' o 'puesto que') va junto y sin tilde."
-    }
+    },
+    // =========================================================================
+    // NUEVA EXPANSIÓN: 30 REACTIVOS EXTRA DE PENSAMIENTO MATEMÁTICO
+    // =========================================================================
+    {
+        q: "Un hospital incrementó su capacidad de camas de 120 a 150. ¿Cuál fue el porcentaje de aumento en su capacidad?",
+        options: ["A) 20%", "B) 25%", "C) 30%"],
+        correct: 1,
+        explanation: "Retroalimentación: El incremento absoluto es de 30 camas (150 - 120). Para obtener el porcentaje se divide el incremento entre el valor inicial: 30 / 120 = 0.25, lo que equivale al 25%."
+    },
+    {
+        q: "Si el triple de un número aumentado en 8 unidades es igual a 29, ¿de qué número se trata?",
+        options: ["A) 7", "B) 6", "C) 8"],
+        correct: 0,
+        explanation: "Retroalimentación: Planteando la ecuación: 3x + 8 = 29. Restamos 8 en ambos lados: 3x = 21. Dividimos entre 3: x = 21 / 3 = 7."
+    },
+    {
+        q: "En una tómbola clínica hay 6 esferas blancas, 4 negras y 2 rojas. Si se extrae una esfera al azar, ¿cuál es la probabilidad de que NO sea blanca?",
+        options: ["A) 1/2 (0.50)", "B) 1/3 (0.33)", "C) 2/3 (0.66)"],
+        correct: 0,
+        explanation: "Retroalimentación: El total de esferas es 12 (6+4+2). Las esferas que NO son blancas son las negras y rojas, sumando 6 (4+2). La probabilidad es 6/12, simplificado como 1/2 o 0.50."
+    },
+    {
+        q: "Las edades de un equipo de 4 enfermeros son 24, 28, 32 y 36 años. Calcule la media aritmética (promedio) de sus edades.",
+        options: ["A) 30 años", "B) 28 años", "C) 32 años"],
+        correct: 0,
+        explanation: "Retroalimentación: Se suman todas las edades: 24 + 28 + 32 + 36 = 120. Se divide entre el número total de elementos (4): 120 / 4 = 30 años."
+    },
+    {
+        q: "En un triángulo rectángulo, la hipotenusa mide 10 cm y el cateto opuesto al ángulo alfa mide 6 cm. ¿Cuál es el valor de la función Coseno de alfa?",
+        options: ["A) 4/5", "B) 3/5", "C) 3/4"],
+        correct: 0,
+        explanation: "Retroalimentación: Por teorema de Pitágoras, el cateto adyacente es √(10² - 6²) = √(100 - 36) = √64 = 8 cm. El Coseno es Cateto Adyacente / Hipotenusa = 8/10, simplificado a 4/5."
+    },
+    {
+        q: "Simplifique por completo la siguiente expresión algebraica eliminando los paréntesis correspondientes: 2(x - 3) - 4(2 - x)",
+        options: ["A) 6x - 14", "B) 6x - 2", "C) -2x - 14"],
+        correct: 0,
+        explanation: "Retroalimentación: Distribuyendo los coeficientes: 2x - 6 - 8 + 4x (cuidado con los signos: -4 * -x = +4x). Agrupando términos semejantes: (2x + 4x) = 6x y (-6 - 8) = -14. Resultado: 6x - 14."
+    },
+    {
+        q: "Determine qué número continúa de manera lógica la siguiente progresión geométrica: 3, 6, 12, 24, 48, ___",
+        options: ["A) 60", "B) 96", "C) 72"],
+        correct: 1,
+        explanation: "Retroalimentación: El patrón de la sucesión consiste en multiplicar cada término por 2 (razón geométrica = 2). Por lo tanto: 48 * 2 = 96."
+    },
+    {
+        q: "Resuelva el siguiente sistema de ecuaciones lineales para determinar el valor de la variable 'y':\nx + 2y = 8\nx - y = 2",
+        options: ["A) y = 2", "B) y = 4", "C) y = 3"],
+        correct: 0,
+        explanation: "Retroalimentación: Restando la segunda ecuación de la primera: (x - x) + (2y - (-y)) = 8 - 2 -> 3y = 6 -> y = 6 / 3 = 2."
+    },
+    {
+        q: "Calcule el área geométrica de un círculo cuyo diámetro mide exactamente 6 cm. (Considere un valor aproximado de pi = 3.14)",
+        options: ["A) 28.26 cm²", "B) 113.04 cm²", "C) 18.84 cm²"],
+        correct: 0,
+        explanation: "Retroalimentación: Si el diámetro mide 6 cm, el radio r mide 3 cm. La fórmula del área es pi * r². Reemplazando: 3.14 * (3)² = 3.14 * 9 = 28.26 cm²."
+    },
+    {
+        q: "Si 5 frascos de un reactivo químico especial cuestan $350 pesos, ¿cuánto se pagará por un lote de 12 frascos del mismo reactivo?",
+        options: ["A) $840 pesos", "B) $740 pesos", "C) $920 pesos"],
+        correct: 0,
+        explanation: "Retroalimentación: Es una proporcionalidad directa. Primero calculamos el costo unitario: 350 / 5 = $70 pesos por frasco. Multiplicamos por la cantidad deseada: 70 * 12 = $840 pesos."
+    },
+    {
+        q: "Determine las raíces o soluciones de la siguiente ecuación cuadrática de segundo grado: x² - 5x + 4 = 0",
+        options: ["A) x = 1, x = 4", "B) x = -1, x = -4", "C) x = 2, x = 3"],
+        correct: 0,
+        explanation: "Retroalimentación: Factorizando el trinomio buscamos dos números que multiplicados den +4 y sumados den -5; estos son -1 y -4, quedando (x - 1)(x - 4) = 0. Al igualar cada factor a cero obtenemos x = 1 y x = 4."
+    },
+    {
+        q: "Aplique las leyes de los exponentes para simplificar por completo la siguiente expresión matemática: (a⁴ * a³)²",
+        options: ["A) a¹⁴", "B) a⁹", "C) a²⁴"],
+        correct: 0,
+        explanation: "Retroalimentación: Al multiplicar bases iguales se suman sus exponentes: a⁴ * a³ = a⁷. Luego, al elevar una potencia a otra potencia se multiplican los exponentes: (a⁷)² = a¹⁴."
+    },
+    {
+        q: "Un terreno rectangular mide 25 metros de largo por 15 metros de ancho. Si un atleta da exactamente 3 vueltas completas a su perímetro, ¿cuántos metros recorre en total?",
+        options: ["A) 240 metros", "B) 80 metros", "C) 120 metros"],
+        correct: 0,
+        explanation: "Retroalimentación: El perímetro de una sola vuelta es 2(25) + 2(15) = 50 + 30 = 80 metros. Dando 3 vueltas multiplicamos: 80 * 3 = 240 metros."
+    },
+    {
+        q: "Determine el rango estadístico del siguiente conjunto de registros de temperatura corporal: 12, 5, 27, 30, 18, 2.",
+        options: ["A) 28", "B) 30", "C) 25"],
+        correct: 0,
+        explanation: "Retroalimentación: El rango se obtiene restando el valor mínimo absoluto del valor máximo absoluto del conjunto de datos. Valor máximo = 30, Valor mínimo = 2. Rango = 30 - 2 = 28."
+    },
 ];
 
     let currentIndex = 0;
